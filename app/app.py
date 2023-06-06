@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from urllib.error import URLError
-from qna.llm import make_qna_chain, get_cache
+from qna.llm import make_qna_chain, get_cache, openai_prompt
 
 
 @st.cache_resource
@@ -53,12 +53,16 @@ try:
             with st.spinner("OpenAI and Redis are working to answer your question..."):
                 result = qna_chain({"query": question})
                 st.session_state['context'], st.session_state['response'] = result['source_documents'], result['result']
-            st.write("### Response")
+                result2 = openai_prompt(question)
+                st.session_state['response2'] = result2
+            st.write("### Informed Response")
             st.write(f"{st.session_state['response']}")
             with st.expander("Show Q&A Context Documents"):
                 if st.session_state['context']:
                     docs = "\n".join([doc.page_content for doc in st.session_state['context']])
                     st.text(docs)
+            st.write("### Default Response")
+            st.write(f"{st.session_state['response2']}")
 
     st.markdown("____")
     st.markdown("")

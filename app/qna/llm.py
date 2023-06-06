@@ -5,8 +5,10 @@ from langchain.schema import Document
 from langchain.llms.base import LLM
 from langchain.embeddings.base import Embeddings
 from typing import List
+import openai
 
 # Env Vars and constants
+openai.api_key = os.getenv("OPENAI_API_KEY")
 CACHE_TYPE = os.getenv("CACHE_TYPE")
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = os.getenv("REDIS_PORT", 6379)
@@ -23,7 +25,7 @@ def get_llm() -> LLM:
         llm=AzureOpenAI(deployment_name=OPENAI_COMPLETIONS_ENGINE)
     else:
         from langchain.llms import OpenAI
-        llm=OpenAI(model_name="gpt-3.5-turbo")
+        llm=OpenAI(model_name="gpt-3.5-turbo", temperature=0.6)
     return llm
 
 
@@ -114,7 +116,7 @@ def make_qna_chain():
     from langchain.chains import RetrievalQA
 
     # Define our prompt
-    prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, say that you don't know, don't try to make up an answer.
+    prompt_template = """Answer the question at the end, utilizing the following context to improve your answer. If you don't know the answer, say that you don't know, don't try to make up an answer.
 
     This should be in the following format:
 
@@ -138,12 +140,32 @@ def make_qna_chain():
     # Create Redis Vector DB
     redis = create_vectorstore()
 
-    # Create retreival QnA Chain
+    # Create retrieval QnA Chain.  TODO: Update to use ConversationalRetrievalChain and include chat history
     chain = RetrievalQA.from_chain_type(
         llm=get_llm(),
         chain_type="stuff",
-        retriever=redis.as_retriever(search_kwargs={"k": 2}),
+        retriever=redis.as_retriever(search_type="similarity_limit", k=6, score_threshold=0.6),
         return_source_documents=True,
         chain_type_kwargs={"prompt": prompt}
     )
     return chain
+
+def generate_prompt(query):
+    return """Answer the question at the end. If you don't know the answer, say that you don't know, don't try to make up an answer.
+
+    This should be in the following format:
+
+    Question: [question here]
+    Answer: [answer here]
+
+    Begin!
+    ---------
+    Question: {}
+    Answer:""".format(query)
+def openai_prompt(query):
+    result = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": generate_prompt(query)}],
+        temperature=0.6,
+    )
+    return result.choices[0].message.content
