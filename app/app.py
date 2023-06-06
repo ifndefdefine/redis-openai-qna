@@ -45,7 +45,7 @@ try:
     #         st.temperature = st.slider("Temperature", 0.0, 1.0, 0.1)
 
 
-    question = st.text_input("*Ask thoughtful questions about the **2020 Summer Olympics***", default_question)
+    question = st.text_input("*Ask management-related questions to IntuitionAI's chatbot", default_question)
 
     if question != '':
         if question != st.session_state['question']:
@@ -64,8 +64,8 @@ try:
     st.markdown("")
     st.write("## How does it work?")
     st.write("""
-        The Q&A app exposes a dataset of wikipedia articles hosted by [OpenAI](https://openai.com/) (about the 2020 Summer Olympics). Ask questions like
-        *"Which country won the most medals at the 2020 olympics?"* or *"Who won the men's high jump event?"*, and get answers!
+        The Q&A app exposes a dataset of management training articles. Ask questions like
+        *"How should I structure a performance management conversation?"* or *"What are the key characteristics of a manager?"*, and get answers!
 
         Everything is powered by OpenAI's embedding and generation APIs and [Redis](https://redis.com/redis-enterprise-cloud/overview/) as a vector database.
 

@@ -25,7 +25,9 @@ The example QnA application uses a dataset from wikipedia of articles about the 
     ```bash
     $ cp .env.template .env
     ```
-    *fill out values, most importantly, your `OPENAI_API_KEY`.*
+    *fill out values, most importantly, your `OPENAI_API_KEY` (and `REDIS_HOST`,`REDIS_PORT` if you aren't using the local REDIS image).*
+
+1a. For local runs, use ```kubectl -n backend port-forward deployment/redis-stack-server 26379:6379``` to make the dev redis cluster available locally
 
 2. Run with docker compose:
     ```bash
@@ -43,7 +45,7 @@ The example QnA application uses a dataset from wikipedia of articles about the 
     http://localhost:8080/
     ```
 
-**NOW: Ask the app anything about the 2020 Summer Olympics!**
+**NOW: Ask the app anything about the management training materials!**
 
 
 ### Using Azure OpenAI

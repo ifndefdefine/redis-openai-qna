@@ -14,7 +14,7 @@ REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
 REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
 OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE", "openai")
 OPENAI_COMPLETIONS_ENGINE = os.getenv("OPENAI_COMPLETIONS_ENGINE", "text-davinci-003")
-INDEX_NAME = "wiki"
+INDEX_NAME = os.getenv("INDEX_NAME", "ai.training.openai")
 
 
 def get_llm() -> LLM:
@@ -92,16 +92,17 @@ def create_vectorstore() -> Redis:
         )
         return vectorstore
     except:
-        pass
+        raise Exception("Can't find Redis at {} {}".format(REDIS_URL, INDEX_NAME))
+#        pass
 
     # Load Redis with documents
-    documents = get_documents()
-    vectorstore = Redis.from_documents(
-        documents=documents,
-        embedding=embeddings,
-        index_name=INDEX_NAME,
-        redis_url=REDIS_URL
-    )
+#    documents = get_documents()
+#    vectorstore = Redis.from_documents(
+#        documents=documents,
+#        embedding=embeddings,
+#        index_name=INDEX_NAME,
+#        redis_url=REDIS_URL
+#    )
     return vectorstore
 
 
