@@ -23,7 +23,7 @@ def get_llm() -> LLM:
         llm=AzureOpenAI(deployment_name=OPENAI_COMPLETIONS_ENGINE)
     else:
         from langchain.llms import OpenAI
-        llm=OpenAI()
+        llm=OpenAI(model_name="gpt-3.5-turbo")
     return llm
 
 
@@ -31,7 +31,7 @@ def get_embeddings() -> Embeddings:
     # TODO - work around rate limits for embedding providers
     if OPENAI_API_TYPE=="azure":
         #currently Azure OpenAI embeddings require request for service limit increase to be useful
-        #using build-in HuggingFace instead
+        #using built-in HuggingFace instead
         from langchain.embeddings import HuggingFaceEmbeddings
         embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     else:
@@ -61,7 +61,8 @@ def get_cache():
 
 def get_documents() -> List[Document]:
     import pandas as pd
-    # Load and prepare wikipedia documents
+    # Load and prepare example documents
+    # TODO: replace with Ryan's code to grab docs in S3
     datasource = pd.read_csv(
         "https://cdn.openai.com/API/examples/data/olympics_sections_text.csv"
     ).to_dict("records")
@@ -95,7 +96,8 @@ def create_vectorstore() -> Redis:
         raise Exception("Can't find Redis at {} {}".format(REDIS_URL, INDEX_NAME))
 #        pass
 
-    # Load Redis with documents
+    # Load Redis with documents - uncomment this block to create vectorstore if it doesn't exist
+    # TODO: update to create new index per model being demoed
 #    documents = get_documents()
 #    vectorstore = Redis.from_documents(
 #        documents=documents,
@@ -140,7 +142,7 @@ def make_qna_chain():
     chain = RetrievalQA.from_chain_type(
         llm=get_llm(),
         chain_type="stuff",
-        retriever=redis.as_retriever(),
+        retriever=redis.as_retriever(search_kwargs={"k": 2}),
         return_source_documents=True,
         chain_type_kwargs={"prompt": prompt}
     )
